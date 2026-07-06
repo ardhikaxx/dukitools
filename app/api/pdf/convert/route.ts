@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     if (ext === '.pdf') {
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
       const uint8 = new Uint8Array(buffer);
-      const pdf = await pdfjs.getDocument({ data: uint8, useSystemFonts: true }).promise;
+      const pdf = await pdfjs.getDocument({ data: uint8, useSystemFonts: true, useWorkerFetch: false, disableRange: true, disableStream: true }).promise;
 
       const allText: string[] = [];
       for (let i = 1; i <= pdf.numPages; i++) {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         const pageText = content.items.map((item: any) => item.str).join(' ');
         allText.push(pageText);
       }
-      pdf.destroy();
+      pdf.cleanup();
 
       const fullText = allText.join('\n\n');
       const paragraphs = fullText
