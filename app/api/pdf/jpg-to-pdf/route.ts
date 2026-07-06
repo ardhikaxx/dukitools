@@ -23,12 +23,17 @@ export async function POST(req: NextRequest) {
     const pdfDoc = await PDFDocument.create();
 
     for (const file of fileEntries) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const jpegBuffer = await sharp(buffer).jpeg().toBuffer();
-      const image = await pdfDoc.embedJpg(jpegBuffer);
-      const { width, height } = image.scale(1);
-      const page = pdfDoc.addPage([width, height]);
-      page.drawImage(image, { x: 0, y: 0, width, height });
+      try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const jpegBuffer = await sharp(buffer).jpeg({ quality: 90 }).toBuffer();
+        const image = await pdfDoc.embedJpg(jpegBuffer);
+        const { width, height } = image.scale(1);
+        const page = pdfDoc.addPage([width, height]);
+        page.drawImage(image, { x: 0, y: 0, width, height });
+      } catch (fileErr) {
+        const msg = fileErr instanceof Error ? fileErr.message : 'unknown';
+        return NextResponse.json({ code: 'FILE_PROCESS_FAILED', error: `Gagal memproses file: ${file.name}. ${msg}` }, { status: 400 });
+      }
     }
 
     const pdfBytes = await pdfDoc.save();
@@ -47,6 +52,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('JPG to PDF error:', err);
-    return NextResponse.json({ code: 'PROCESSING_FAILED', error: 'Gagal mengonversi gambar ke PDF.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Terjadi kesalahan tidak terduga.';
+    return NextResponse.json({ code: 'PROCESSING_FAILED', error: `Gagal mengonversi gambar ke PDF: ${message}` }, { status: 500 });
   }
 }

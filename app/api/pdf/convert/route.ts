@@ -5,7 +5,6 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
 import { Document, Packer, Paragraph, TextRun, Header, Footer, AlignmentType } from 'docx';
 
 export const runtime = 'nodejs';
@@ -53,14 +52,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // PDF to Word: extract text with pdf-parse, create proper .docx
+    // PDF to Word: extract text with pdfjs-dist, create proper .docx
     if (ext === '.pdf') {
-      const parser = new PDFParse({ data: buffer, verbosity: 0 });
-      const textResult = await parser.getText();
-      const paragraphs = textResult.text
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const uint8 = new Uint8Array(buffer);
+      const pdf = await pdfjs.getDocument({ data: uint8, useSystemFonts: true }).promise;
+
+      const allText: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map((item: any) => item.str).join(' ');
+        allText.push(pageText);
+      }
+      pdf.destroy();
+
+      const fullText = allText.join('\n\n');
+      const paragraphs = fullText
         .split('\n')
-        .filter((line) => line.trim())
-        .map((line) => new Paragraph({ children: [new TextRun({ text: line, size: 22 })] }));
+        .filter((line: string) => line.trim())
+        .map((line: string) => new Paragraph({ children: [new TextRun({ text: line, size: 22 })] }));
 
       if (paragraphs.length === 0) {
         paragraphs.push(new Paragraph({ children: [new TextRun({ text: '(Tidak ada teks yang dapat diekstrak dari PDF ini)', size: 22 })] }));
@@ -83,7 +94,6 @@ export async function POST(req: NextRequest) {
       });
 
       const docxBytes = await Packer.toBuffer(doc);
-      await parser.destroy();
       const id = crypto.randomUUID();
       const filePath = path.join(TEMP_DIR, id);
       await writeFile(filePath, Buffer.from(docxBytes));
@@ -97,6 +107,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ code: 'INVALID_FILE_TYPE', error: 'Format file tidak didukung.' }, { status: 400 });
   } catch (err) {
     console.error('Convert PDF error:', err);
-    return NextResponse.json({ code: 'PROCESSING_FAILED', error: 'Gagal mengonversi file.' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : 'Terjadi kesalahan tidak terduga.';
+    return NextResponse.json({ code: 'PROCESSING_FAILED', error: `Gagal mengonversi file: ${msg}` }, { status: 500 });
   }
 }
