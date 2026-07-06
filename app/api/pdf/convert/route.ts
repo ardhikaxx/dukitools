@@ -5,6 +5,8 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import mammoth from 'mammoth';
+import { PDFParse } from 'pdf-parse';
+import { Document, Packer, Paragraph, TextRun, Header, Footer, AlignmentType } from 'docx';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -51,36 +53,44 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // PDF to Word: embed page info in a DOCX-like PDF
+    // PDF to Word: extract text with pdf-parse, create proper .docx
     if (ext === '.pdf') {
-      const srcDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-      const doc = await PDFDocument.create();
-      const page = doc.addPage([612, 792]);
-      const { width, height } = page.getSize();
-      page.drawText(`File: ${file.name}`, { x: 50, y: height - 50, size: 14, color: rgb(0, 0, 0) });
-      page.drawText(`Total Halaman: ${srcDoc.getPageCount()}`, { x: 50, y: height - 75, size: 11, color: rgb(0.2, 0.2, 0.2) });
-      page.drawText('', { x: 50, y: height - 100, size: 11, color: rgb(0.2, 0.2, 0.2) });
-      const lines = [
-        'Konversi PDF ke Word sedang dalam pengembangan.',
-        'Untuk hasil sempurna, gunakan Microsoft Word atau Google Docs.',
-        '',
-        'Ringkasan dokumen:',
-        `- Nama file: ${file.name}`,
-        `- Total halaman: ${srcDoc.getPageCount()}`,
-      ];
-      let y = height - 120;
-      for (const line of lines) {
-        page.drawText(line, { x: 50, y, size: 11, color: rgb(0, 0, 0) });
-        y -= 18;
+      const parser = new PDFParse({ data: buffer, verbosity: 0 });
+      const textResult = await parser.getText();
+      const paragraphs = textResult.text
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => new Paragraph({ children: [new TextRun({ text: line, size: 22 })] }));
+
+      if (paragraphs.length === 0) {
+        paragraphs.push(new Paragraph({ children: [new TextRun({ text: '(Tidak ada teks yang dapat diekstrak dari PDF ini)', size: 22 })] }));
       }
-      const pdfBytes = await doc.save();
+
+      const doc = new Document({
+        title: file.name.replace(/\.\w+$/, ''),
+        description: `Konversi dari ${file.name}`,
+        creator: 'DukiTools',
+        sections: [{
+          properties: {},
+          headers: {
+            default: new Header({ children: [new Paragraph({ children: [new TextRun({ text: file.name, size: 16, color: '888888' })] })] }),
+          },
+          footers: {
+            default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Dibuat dengan DukiTools', size: 16, color: '888888' })] })] }),
+          },
+          children: paragraphs,
+        }],
+      });
+
+      const docxBytes = await Packer.toBuffer(doc);
+      await parser.destroy();
       const id = crypto.randomUUID();
       const filePath = path.join(TEMP_DIR, id);
-      await writeFile(filePath, Buffer.from(pdfBytes));
+      await writeFile(filePath, Buffer.from(docxBytes));
       return NextResponse.json({
-        downloadUrl: `/api/download/${id}?filename=${encodeURIComponent(file.name.replace(/\.\w+$/, '-converted.pdf'))}`,
-        fileName: file.name.replace(/\.\w+$/, '-converted.pdf'),
-        sizeBytes: pdfBytes.length,
+        downloadUrl: `/api/download/${id}?filename=${encodeURIComponent(file.name.replace(/\.\w+$/, '.docx'))}`,
+        fileName: file.name.replace(/\.\w+$/, '.docx'),
+        sizeBytes: docxBytes.length,
       });
     }
 
