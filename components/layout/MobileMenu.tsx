@@ -31,6 +31,21 @@ export default function MobileMenu({ categories, onClose }: MobileMenuProps) {
         <Link href="/#popular-tools" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
           Tools Populer
         </Link>
+        <Link href="/about" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
+          Tentang
+        </Link>
+        <Link href="/contact" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
+          Kontak
+        </Link>
+        <Link href="/privacy-policy" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
+          Kebijakan Privasi
+        </Link>
+        <Link href="/terms-of-service" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
+          Syarat Penggunaan
+        </Link>
+        <Link href="/disclaimer" className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={onClose}>
+          Disclaimer
+        </Link>
       </div>
     </div>
   );
