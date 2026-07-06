@@ -33,6 +33,21 @@ export default function Navbar() {
           <Link href="/#popular-tools" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Tools Populer
           </Link>
+          <Link href="/about" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            Tentang
+          </Link>
+          <Link href="/contact" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            Kontak
+          </Link>
+          <Link href="/privacy-policy" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            Privasi
+          </Link>
+          <Link href="/terms-of-service" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            Syarat
+          </Link>
+          <Link href="/disclaimer" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            Disclaimer
+          </Link>
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
