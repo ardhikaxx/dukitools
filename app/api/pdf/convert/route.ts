@@ -6,6 +6,7 @@ import path from 'path';
 import crypto from 'crypto';
 import mammoth from 'mammoth';
 import { Document, Packer, Paragraph, TextRun, Header, Footer, AlignmentType } from 'docx';
+import pdfParse from 'pdf-parse';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -52,23 +53,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // PDF to Word: extract text with pdfjs-dist, create proper .docx
+    // PDF to Word: extract text with pdf-parse, create proper .docx
     if (ext === '.pdf') {
-      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-      const uint8 = new Uint8Array(buffer);
-      const pdf = await pdfjs.getDocument({ data: uint8, useSystemFonts: true, useWorkerFetch: false, disableRange: true, disableStream: true }).promise;
-
-      const allText: string[] = [];
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map((item: any) => item.str).join(' ');
-        allText.push(pageText);
-      }
-      pdf.cleanup();
-
-      const fullText = allText.join('\n\n');
-      const paragraphs = fullText
+      const pdfData = await pdfParse(buffer);
+      const paragraphs = pdfData.text
         .split('\n')
         .filter((line: string) => line.trim())
         .map((line: string) => new Paragraph({ children: [new TextRun({ text: line, size: 22 })] }));
