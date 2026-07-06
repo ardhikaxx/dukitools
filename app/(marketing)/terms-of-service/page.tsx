@@ -1,14 +1,43 @@
 import type { Metadata } from 'next';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 
+const BASE_URL = 'https://dukitools.com';
+
 export const metadata: Metadata = {
   title: 'Syarat Penggunaan DukiTools',
   description: 'Syarat dan ketentuan penggunaan layanan DukiTools.',
+  alternates: { canonical: `${BASE_URL}/terms-of-service` },
+  openGraph: {
+    title: 'Syarat Penggunaan DukiTools',
+    description: 'Syarat dan ketentuan penggunaan layanan DukiTools.',
+    url: `${BASE_URL}/terms-of-service`,
+    siteName: 'DukiTools',
+    type: 'website',
+    locale: 'id_ID',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Syarat Penggunaan DukiTools',
+    description: 'Syarat dan ketentuan penggunaan layanan DukiTools.',
+  },
 };
 
 export default function TermsOfServicePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://dukitools.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Syarat Penggunaan' },
+            ],
+          }),
+        }}
+      />
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Syarat Penggunaan' }]} />
       <h1 className="text-3xl font-bold text-slate-900">Syarat Penggunaan</h1>
       <div className="mt-6 space-y-4 text-slate-600 leading-relaxed">

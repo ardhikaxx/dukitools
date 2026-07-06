@@ -1,14 +1,43 @@
 import type { Metadata } from 'next';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 
+const BASE_URL = 'https://dukitools.com';
+
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi DukiTools',
   description: 'Kebijakan privasi DukiTools — bagaimana kami menangani dan melindungi data Anda.',
+  alternates: { canonical: `${BASE_URL}/privacy-policy` },
+  openGraph: {
+    title: 'Kebijakan Privasi DukiTools',
+    description: 'Kebijakan privasi DukiTools — bagaimana kami menangani dan melindungi data Anda.',
+    url: `${BASE_URL}/privacy-policy`,
+    siteName: 'DukiTools',
+    type: 'website',
+    locale: 'id_ID',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kebijakan Privasi DukiTools',
+    description: 'Kebijakan privasi DukiTools — bagaimana kami menangani dan melindungi data Anda.',
+  },
 };
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://dukitools.com/' },
+              { '@type': 'ListItem', position: 2, name: 'Kebijakan Privasi' },
+            ],
+          }),
+        }}
+      />
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Kebijakan Privasi' }]} />
       <h1 className="text-3xl font-bold text-slate-900">Kebijakan Privasi</h1>
       <div className="mt-6 space-y-4 text-slate-600 leading-relaxed">

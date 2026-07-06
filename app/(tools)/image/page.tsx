@@ -3,12 +3,17 @@ import { notFound } from 'next/navigation';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import ToolCard from '@/components/tools/ToolCard';
 import { getToolsByCategory, getCategoryBySlug } from '@/lib/registry/registry-helpers';
+import { generateCategoryMetadata } from '@/lib/utils/generateMetadata';
+import { breadcrumbSchema } from '@/lib/seo/json-ld';
+import { CategorySlug } from '@/types/tool';
 import * as Icons from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Image Tools — Gratis & Tanpa Login',
-  description: 'Kumpulan tools gambar gratis: kompres, resize, konversi, dan edit gambar online tanpa login.',
-};
+const catSlug: CategorySlug = 'image';
+const cat = getCategoryBySlug(catSlug);
+
+export const metadata: Metadata = cat
+  ? generateCategoryMetadata(cat.name, cat.description, cat.slug)
+  : {};
 
 export default function ImageCategoryPage() {
   const category = getCategoryBySlug('image');
@@ -18,6 +23,10 @@ export default function ImageCategoryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
+        { label: 'Home', href: '/' },
+        { label: category.name },
+      ])) }} />
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: category.name }]} />
       <div className="mb-8 flex items-center gap-4">
         <div className={`rounded-2xl p-4 ${category.colorClass}`}>

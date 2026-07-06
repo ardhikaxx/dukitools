@@ -3,12 +3,17 @@ import { notFound } from 'next/navigation';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import ToolCard from '@/components/tools/ToolCard';
 import { getToolsByCategory, getCategoryBySlug } from '@/lib/registry/registry-helpers';
+import { generateCategoryMetadata } from '@/lib/utils/generateMetadata';
+import { breadcrumbSchema } from '@/lib/seo/json-ld';
+import { CategorySlug } from '@/types/tool';
 import * as Icons from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'QR Tools — Gratis & Tanpa Login',
-  description: 'Kumpulan tools QR Code gratis: generator QR, barcode, dan scanner online.',
-};
+const catSlug: CategorySlug = 'qr';
+const cat = getCategoryBySlug(catSlug);
+
+export const metadata: Metadata = cat
+  ? generateCategoryMetadata(cat.name, cat.description, cat.slug)
+  : {};
 
 export default function QrCategoryPage() {
   const category = getCategoryBySlug('qr');
@@ -18,6 +23,10 @@ export default function QrCategoryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema([
+        { label: 'Home', href: '/' },
+        { label: category.name },
+      ])) }} />
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: category.name }]} />
       <div className="mb-8 flex items-center gap-4">
         <div className={`rounded-2xl p-4 ${category.colorClass}`}>

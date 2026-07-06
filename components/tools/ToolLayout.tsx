@@ -4,6 +4,7 @@ import ToolHeader from './ToolHeader';
 import ToolFAQ from './ToolFAQ';
 import RelatedTools from './RelatedTools';
 import { getCategoryBySlug, getRelatedTools } from '@/lib/registry/registry-helpers';
+import { webApplicationSchema, faqPageSchema, breadcrumbSchema } from '@/lib/seo/json-ld';
 
 export default function ToolLayout({ tool, children }: { tool: ToolConfig; children: React.ReactNode }) {
   const category = getCategoryBySlug(tool.category);
@@ -12,22 +13,13 @@ export default function ToolLayout({ tool, children }: { tool: ToolConfig; child
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'SoftwareApplication',
-        name: tool.name,
-        applicationCategory: 'UtilitiesApplication',
-        operatingSystem: 'Any',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR' },
-        description: tool.shortDescription,
-      },
-      {
-        '@type': 'FAQPage',
-        mainEntity: tool.faq.map((f) => ({
-          '@type': 'Question',
-          name: f.question,
-          acceptedAnswer: { '@type': 'Answer', text: f.answer },
-        })),
-      },
+      webApplicationSchema(tool.name, tool.shortDescription, tool.category, tool.slug),
+      faqPageSchema(tool.faq),
+      breadcrumbSchema([
+        { label: 'Home', href: '/' },
+        { label: category?.name ?? tool.category, href: `/${tool.category}` },
+        { label: tool.name },
+      ]),
     ],
   };
 

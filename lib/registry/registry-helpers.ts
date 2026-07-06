@@ -49,3 +49,7 @@ export function searchTools(query: string, limit = 8): ToolConfig[] {
 export function getToolCountByCategory(category: CategorySlug): number {
   return toolsRegistry.filter((t) => t.category === category).length;
 }
+
+export function getTotalTools(): number {
+  return toolsRegistry.length;
+}
